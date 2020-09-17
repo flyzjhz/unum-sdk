@@ -6,11 +6,13 @@
 CPPFLAGS += -I$(UNUM_PATH)/wireless/$(MODEL)
 
 # Add code file(s)
-OBJECTS += ./wireless/$(MODEL)/radios_platform.o \
-           ./wireless/$(MODEL)/stas_platform.o   \
-           ./wireless/$(MODEL)/scan_platform.o   \
-           ./wireless/wireless_iwinfo.o          \
-           ./wireless/$(MODEL)/wireless_platform.o
+OBJECTS += ./wireless/$(MODEL)/radios_platform.o       \
+           ./wireless/$(MODEL)/stas_platform.o         \
+           ./wireless/$(MODEL)/scan_platform.o         \
+           ./wireless/wireless_iwinfo.o                \
+           ./wireless/wireless_nl80211.o               \
+           ./wireless/$(MODEL)/scan_platform_nl80211.o \
+           ./wireless/$(MODEL)/wireless_platform.o 
 
 # Include common portion of the makefile for the subsystem
 include ./wireless/wireless_common.mk
