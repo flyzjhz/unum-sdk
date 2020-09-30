@@ -36,12 +36,6 @@ int wt_tpl_fill_scan_radio_info(WT_JSON_TPL_SCAN_RADIO_t *rscan)
             return -1;
         }
     }
-
-#ifdef FEATURE_MAC80211_LIBNL
-    if (wt_platform_iwinfo_get_scanlist != NULL) {
-        return wt_platform_iwinfo_get_scanlist(phyname, rscan);
-    }
-#endif
     // If we have not yet allocated memory buffer for scan lists, do it
     // first (the bufer is reused and is never freed)
     if(scanlist_buf == NULL) {
@@ -88,9 +82,6 @@ int wt_tpl_fill_scan_radio_info(WT_JSON_TPL_SCAN_RADIO_t *rscan)
 int wt_tpl_fill_scan_entry_info(WT_JSON_TPL_SCAN_RADIO_t *rscan,
                                 WT_JSON_TPL_SCAN_ENTRY_t *entry, int ii)
 {
-    if (wt_platform_tpl_fill_scan_entry_info != NULL) {
-        return wt_platform_tpl_fill_scan_entry_info(rscan, entry, ii);
-    }
     char *pos;
 
     // scan entry extras template and values

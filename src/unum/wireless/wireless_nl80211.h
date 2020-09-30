@@ -33,5 +33,9 @@ struct nl80211_scanlist_entry {
     char enc_buf[ENC_BUF_SIZE];
 };
 
+// Scan and dump results
 int wt_nl80211_get_scan(char *ifname, char *buf);
+
+// Get the first VAP name
+char* __attribute__((weak)) wt_platform_nl80211_get_vap(char *phyname);
 #endif

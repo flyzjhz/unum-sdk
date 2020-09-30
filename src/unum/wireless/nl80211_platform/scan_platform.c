@@ -30,49 +30,38 @@ static const char *vht_chanwidth[] = {
     "80+80 MHz",
     "160 MHz",
 };
-#ifdef FEATURE_MAC80211_LIBNL
-char*
-wt_platform_iwinfo_get_vap(char *phyname)
-{
-    int phyidx = wt_iwinfo_get_phy_num(phyname);
-    int idx = -1;
-    char *ifname;
 
-    if(phyidx < 0) {
-        log("%s: invalid phy name <%s>\n", __func__, phyname);
-        return NULL;
-    }
-    if ((idx = wt_iwinfo_get_if_num_for_phy(phyidx, idx)) >= 0)
-    {
-        ifname = wt_iwinfo_get_ifname(idx);
-    } else {
-        log("%s: No Interfaces <%s>\n", __func__, phyname);
-        return NULL;
-    }
-    return ifname;
-}
-#endif
-
-int wt_platform_iwinfo_get_scanlist(char *ifname,
-                                WT_JSON_TPL_SCAN_RADIO_t *rscan)
+int wt_tpl_fill_scan_radio_info(WT_JSON_TPL_SCAN_RADIO_t *rscan)
 {
+    char *phyname = rscan->name;
     int len;
 
-    if (scanlist_buf == NULL) {
+    // NL80211 APIs use interface name (especially for scan)
+    // Get the first interface name
+    if (wt_platform_nl80211_get_vap != NULL) {
+        phyname = wt_platform_nl80211_get_vap(phyname);
+        if (phyname == NULL) {
+            log("%s: Failed to get the VAP name for phy: %s\n",
+                    __func__,phyname);
+            return -1;
+        }
+    }
+    
+    if(scanlist_buf == NULL) {
         scanlist_buf = (char *)malloc(SCANLIST_BUF_SIZE);
     }
-    if (scanlist_buf == NULL) {
+    if(scanlist_buf == NULL) {
         log("%s: Error while allocating buffer for scanlist\n", __func__);
         return -1;
     }
     memset(scanlist_buf, 0, SCANLIST_BUF_SIZE);
-    len = wt_nl80211_get_scan(ifname, scanlist_buf);
+    len = wt_nl80211_get_scan(phyname, scanlist_buf);
     if(len < 0)
     {
         // scan might not work due to DFS channel, log error in debug mode only
         // BTW, the upper layer still going to log an error
-        log_dbg("%s: iwinfo scan error on <%s>, returned %d\n",
-                __func__, ifname, len);
+        log_dbg("%s: nl80211 scan error on <%s>, returned %d\n",
+                __func__, phyname, len);
         return -2;
     }
 
@@ -85,7 +74,7 @@ int wt_platform_iwinfo_get_scanlist(char *ifname,
 // Extract the scan entry info
 // Returns: 0 - if successful (all required info captured),
 //          negative - error, positive - skip (no error)
-int wt_platform_tpl_fill_scan_entry_info(WT_JSON_TPL_SCAN_RADIO_t *rscan,
+int wt_tpl_fill_scan_entry_info(WT_JSON_TPL_SCAN_RADIO_t *rscan,
                                 WT_JSON_TPL_SCAN_ENTRY_t *entry, int ii)
 {
     static char ht_width[16];

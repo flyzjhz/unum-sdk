@@ -130,12 +130,4 @@ int __attribute__((weak)) wt_platform_iwinfo_get_channel(char *phyname);
 // Get the first VAP name
 char* __attribute__((weak)) wt_platform_iwinfo_get_vap(char *phyname);
 
-// Get the scan list - Platform specific
-int  __attribute__((weak)) wt_platform_iwinfo_get_scanlist(char *ifname,
-                                    WT_JSON_TPL_SCAN_RADIO_t *rscan);
-
-// Get the scan list - Platform specific
-int __attribute__((weak)) wt_platform_tpl_fill_scan_entry_info(
-                                WT_JSON_TPL_SCAN_RADIO_t *rscan,
-                                WT_JSON_TPL_SCAN_ENTRY_t *entry, int ii);
 #endif // _WIRELESS_IWINFO_H
