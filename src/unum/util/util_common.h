@@ -7,6 +7,8 @@
 // Pull in DNS utils header (it's platform independent)
 #include "util_dns.h"
 
+// Zlib wrappers
+#include "util_zlib.h"
 
 // Get number of elements in an array
 #define UTIL_ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]) \

@@ -11,7 +11,6 @@ char *init_str_list[] = { INITSTRLIST, NULL };
 // The init level that we have executed all the init routines for
 int init_level_completed = 0;
 
-
 // Unum configuration context global structure
 UNUM_CONFIG_t unum_config = {
     .telemetry_period          = TELEMETRY_PERIOD,
@@ -25,6 +24,9 @@ UNUM_CONFIG_t unum_config = {
     .ipt_period                = IPT_TELEMETRY_PERIOD,
     .config_path               = UNUM_CONFIG_PATH,
     .dns_timeout               = DNS_TIMEOUT,
+#ifdef FEATURE_GZIP
+    .zip_enabled               = COMPRESSION_ENABLED,
+#endif //FEATURE_GZIP
 #if defined(FEATURE_MANAGED_DEVICE)
     .opmode                    = UNUM_OPMS_MD,
     .opmode_flags              = UNUM_OPM_MD,
@@ -84,10 +86,13 @@ static struct option long_options[] =
     {"sysinfo-period\0ia", required_argument, NULL, 'C'},
     {"tpcap-nice\0ia",     required_argument, NULL, 'N'},
     {"dns-timeout\0ia",    required_argument, NULL, 'D'},
+#ifdef FEATURE_GZIP
+    {"zip-enabled\0ia",    required_argument, NULL, 'g'},
+#endif //FEATURE_GZIP
     {0, 0, 0, 0}
 };
 // The short options string for the above
-static char *optstring = "hvzf:dunps:i:c:m:o:w:l:";
+static char *optstring = "hvzf:dunps:i:c:m:o:w:l:L:g:";
     
 // Global variables for storing command line args
 int arg_count;
@@ -400,6 +405,9 @@ static void print_usage(int argc, char *argv[])
     printf(" --sysinfo-period <0-...>     - sysinfo reporting interval\n");
     printf("                                0: disable reporting\n");
     printf(" --dns-timeout <1-...>        - timeout in seconds for dns request\n");
+#ifdef FEATURE_GZIP
+    printf(" --zip-enabled <0 / 1>        - Whether Message Zipping is enabled\n");
+#endif //FEATURE_GZIP
 #ifdef FW_UPDATER_RUN_MODE
     printf(" --fwupd-period <60-...>      - firmware upgrade check time\n");
     printf("                                for \"-m updater\"\n");
@@ -624,6 +632,11 @@ static int do_config_char(char opt_long, char *optarg)
             unum_config.wan_ifname[sizeof(unum_config.wan_ifname) - 1] = 0;
             unum_config.wan_ifcount = 1;
             break;                
+#ifdef FEATURE_GZIP
+        case 'g':
+            unum_config.zip_enabled = atoi(optarg);
+            break;
+#endif //FEATURE_GZIP
         case 'o':
             status = util_set_opmode(optarg);
             if(status < 0) {
@@ -633,7 +646,7 @@ static int do_config_char(char opt_long, char *optarg)
             }
             break;
         default:
-            status = -3;
+            status = -4;
             break;
     }
 
@@ -945,7 +958,7 @@ int main(int argc, char *argv[])
 {
     // store argc argv in the global variables
     arg_count = argc;
-    arg_vector = argv;    
+    arg_vector = argv;
 
     // Override all logging to go to stdout during initial startup stages
     set_proc_log_dst(LOG_DST_STDOUT);

@@ -170,6 +170,9 @@ typedef struct {
     int ipt_period;                // iptables reporting time period
     char *config_path;             // path to config file
     int dns_timeout;               // dns timeout value in seconds
+#ifdef FEATURE_GZIP
+    int zip_enabled;               // Whether Message Zip is enabled
+#endif
     char wan_ifname[IFNAMSIZ];     // specify a custom wan interface name
     char lan_ifname[TPCAP_IF_MAX][IFNAMSIZ];
                                    // list of custom lan interface names

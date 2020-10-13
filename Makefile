@@ -73,6 +73,8 @@ all: install
 
 # Include the model makefile and prepare global vars
 include $(TARGET_RULES)
+# Libraries /Binaries to include for all platforms
+#include common.mk
 export
 
 # Dependencies for specific software components
