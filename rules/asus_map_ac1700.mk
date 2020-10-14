@@ -54,19 +54,24 @@ IWINFO_MADWIFI_PATCH := 1
 JANSSON_VERSION := jansson-2.7
 TARGET_VARS_jansson := VERSION=$(JANSSON_VERSION)
 
+### ZLIB Version
+ZLIB_VERSION := zlib-1.2.11
+
 ### unum
 TARGET_CPPFLAGS_unum := \
 	-I$(TARGET_LIBS)/libnvram/include \
 	-I$(TARGET_LIBS)/libshared/include \
         -I$(TARGET_LIBS)/libssl/include \
-        -I$(TARGET_LIBS)/libcurl/include
+        -I$(TARGET_LIBS)/libcurl/include \
+	-I$(TOP)/src/zlib/$(ZLIB_VERSION)
 
 TARGET_LDFLAGS_unum := -ldl -lm -lrt \
 	-L$(TARGET_LIBS)/libcurl/lib/ -l:libcurl.so \
 	-L$(TARGET_LIBS)/libssl/lib/ -l:libssl.so \
 	-L$(TARGET_LIBS)/libssl/lib/ -l:libcrypto.so \
 	-L$(TARGET_LIBS)/libnvram/lib/ -l:libnvram.so \
-	-L$(TARGET_LIBS)/libshared/lib/ -l:libshared.so
+	-L$(TARGET_LIBS)/libshared/lib/ -l:libshared.so \
+	-L$(TARGET_LIBS)/libz/lib/ -l:libz.so -lz
  
 ### GDB
 GDB_VERSION := gdb-7.11
