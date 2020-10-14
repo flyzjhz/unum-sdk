@@ -27,7 +27,7 @@ int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len)
     stream.next_out = (Bytef *)cmsg;
     
     // Init the compression system
-    if ((ret = deflateInit(&stream, Z_BEST_COMPRESSION)) != Z_OK) {
+    if ((ret = deflateInit(&stream, DEFAULT_COMP_ALGO)) != Z_OK) {
         // Init failed
         // Return
         log("%s: Initing the compression system failed: Error code: %d\n",

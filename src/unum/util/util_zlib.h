@@ -9,6 +9,11 @@
 #define COMPRESS_THRESHOLD 1024
 #define COMPRESSED_MSG_MAX_SIZE 1500 // Typicall MTU?
 #define COMPRESSION_ENABLED 0
+
+// Default compression algorithm
+// Can be overwritten by platform specific code
+// For platforms with FUP limits, we can use Z_BEST_SPEED
+#define DEFAULT_COMP_ALGO Z_BEST_COMPRESSION
 // Compress a message
 int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len);
 // Decompress a message
