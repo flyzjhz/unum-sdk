@@ -5,4 +5,3 @@ rescan_devices
 hardware_content_filtering
 mac_filter
 edns0_content_filter
-gzip

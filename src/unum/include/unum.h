@@ -79,6 +79,11 @@
 #include "monitor.h"
 #include "conncheck.h"
 
+#ifdef FEATURE_GZIP
+// Zlib wrappers
+#include "zip_zlib.h"
+#endif //FEATURE_GZIP
+
 #ifdef DEBUG
 #  include "tests.h"
 #endif // DEBUG
