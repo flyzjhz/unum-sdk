@@ -13,7 +13,7 @@
 // cmsg - Compressed message
 // cmsg_len - Size of cmsg
 // Returns the length of the compressed message
-int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len)
+int zip_compress_message(char *msg, int len, char *cmsg, int cmsg_len)
 {
     z_stream stream;
     int ret;
@@ -60,7 +60,7 @@ int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len)
 // msg - Decompressed message
 // len - Size of msg array
 // Returns the length of the decompressed message
-int util_decompress_message(char *cmsg, int cmsg_len, char *msg, int len)
+int zip_decompress_message(char *cmsg, int cmsg_len, char *msg, int len)
 {
     z_stream stream;
     int ret;

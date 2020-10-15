@@ -6,7 +6,7 @@
 #ifdef FEATURE_GZIP // Only if this is feature is enabled
 #include <zlib.h>
 // Threshold beyond which the message is to be compressed
-#define COMPRESS_THRESHOLD 1024
+#define COMPRESS_THRESHOLD 80
 #define COMPRESSED_MSG_MAX_SIZE 1500 // Typicall MTU?
 #define COMPRESSION_ENABLED 0
 
@@ -15,8 +15,8 @@
 // For platforms with FUP limits, we can use Z_BEST_SPEED
 #define DEFAULT_COMP_ALGO Z_DEFAULT_COMPRESSION
 // Compress a message
-int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len);
+int zip_compress_message(char *msg, int len, char *cmsg, int cmsg_len);
 // Decompress a message
-int util_decompress_message(char *cmsg, int cmsg_len, char *msg, int len);
+int zip_decompress_message(char *cmsg, int cmsg_len, char *msg, int len);
 #endif // FEATURE_GZIP
 #endif // _UTIL_ZLIB_H

@@ -588,6 +588,11 @@ static int do_config_int(char opt_long, int optarg)
                 unum_config.dns_timeout = optarg;
             }
             break;
+#ifdef FEATURE_GZIP
+         case 'g':
+             unum_config.zip_enabled = optarg;
+             break;
+#endif //FEATURE_GZIP
         default:
             status = -13;
             break;
@@ -632,11 +637,6 @@ static int do_config_char(char opt_long, char *optarg)
             unum_config.wan_ifname[sizeof(unum_config.wan_ifname) - 1] = 0;
             unum_config.wan_ifcount = 1;
             break;                
-#ifdef FEATURE_GZIP
-        case 'g':
-            unum_config.zip_enabled = atoi(optarg);
-            break;
-#endif //FEATURE_GZIP
         case 'o':
             status = util_set_opmode(optarg);
             if(status < 0) {
