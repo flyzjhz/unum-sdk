@@ -1,5 +1,6 @@
 // (c) 2020 minim.co
 
+// Wrapper routines from zlib
 #include "unum.h"
 #ifdef FEATURE_GZIP // Only if this is feature is enabled
 // Zlib is thread safe

@@ -1,4 +1,4 @@
-# (c) 2017-2020 minim.co
+# (c) 2017-2018 minim.co
 # Plaform independent part of Makefile for unum utility functions library 
 
 # Add code file(s)
