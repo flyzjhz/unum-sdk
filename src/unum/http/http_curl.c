@@ -370,7 +370,30 @@ static http_rsp *http_req(char *url, char *headers,
 // The caller must free the http_rsp when it is no longer needed.
 http_rsp *http_post(char *url, char *headers, char *data, int len)
 {
-    return http_req(url, headers, HTTP_REQ_TYPE_POST, data, len);
+#ifdef FEATURE_GZIP
+    char cstr[COMPRESSED_MSG_MAX_SIZE];
+    int cstrlen;
+    // If Zip is enabled and message length exceeds the threshold
+    if(unum_config.zip_enabled && strlen(jstr) > COMPRESS_THRESHOLD) {
+        cstrlen = util_compress_message(jstr, strlen(jstr), cstr, sizeof(cstr));
+        if (cstrlen > 0) {
+            // Send compressed message
+            rsp = http_post_no_retry(url,
+                                     "Content-Type: application/json\0"
+                                     "Content-Encoding: gzip\0"
+                                     "Accept: application/json\0",
+                                     cstr, cstrlen);
+            return http_req(url, headers "Content-Encoding: gzip\0",
+                        HTTP_REQ_TYPE_POST, data, len);
+        } else {
+            return http_req(url, headers, HTTP_REQ_TYPE_POST, data, len);
+        }
+     } else
+#else // FEATURE_GZIP
+    {
+        return http_req(url, headers, HTTP_REQ_TYPE_POST, data, len);
+    }
+#endif // FEATURE_GZIP
 }
 // The same as http_post(), but response headers are captured too
 http_rsp *http_post_all(char *url, char *headers, char *data, int len)

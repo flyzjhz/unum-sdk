@@ -305,10 +305,6 @@ static void telemetry(THRD_PARAM_t *p)
         json_t *rsp_root = NULL;
         char *jstr = NULL;
         json_error_t jerr;
-#ifdef FEATURE_GZIP
-        char cstr[COMPRESSED_MSG_MAX_SIZE];
-        int cstrlen;
-#endif //FEATURE_GZIP
 
         for(;;) {
 
@@ -333,33 +329,12 @@ static void telemetry(THRD_PARAM_t *p)
                 }
             } else // send request (function call below) only if not a test
 #endif // DEBUG
-#ifdef FEATURE_GZIP
-            // If Zip is enabled and message length exceeds the threshold
-            if(unum_config.zip_enabled && strlen(jstr) > COMPRESS_THRESHOLD) {
-                cstrlen = util_compress_message(jstr, strlen(jstr), cstr, sizeof(cstr));
-                if (cstrlen > 0) {
-                    // Send compressed message
-                    rsp = http_post_no_retry(url,
-                                     "Content-Type: application/json\0"
-                                     "Content-Encoding: gzip\0"
-                                     "Accept: application/json\0",
-                                     cstr, cstrlen);
-                } else {
-                    // For some reason, the compression failed
-                    // Send the message as plain text
-                    rsp = http_post_no_retry(url,
-                                     "Content-Type: application/json\0"
-                                     "Accept: application/json\0",
-                                     jstr, strlen(jstr));
-                }
-            } else
-#else // FEATURE_GZIP
+
             // Send the telemetry info
             rsp = http_post_no_retry(url,
                                      "Content-Type: application/json\0"
                                      "Accept: application/json\0",
                                      jstr, strlen(jstr));
-#endif //FEATURE_GZIP
 
             // No longer need the JSON string
             util_free_json_str(jstr);

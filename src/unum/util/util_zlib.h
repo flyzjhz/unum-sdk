@@ -8,6 +8,8 @@
 // Threshold beyond which the message is to be compressed
 #define COMPRESS_THRESHOLD 1024
 #define COMPRESSED_MSG_MAX_SIZE 1500 // Typicall MTU?
+// Is compression enabled?
+// Can be overwritten by platform code
 #define COMPRESSION_ENABLED 0
 
 // Default compression algorithm
