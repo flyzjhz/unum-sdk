@@ -433,8 +433,7 @@ http_rsp *http_post_all(char *url, char *headers, char *data, int len)
 http_rsp *http_post_no_retry(char *url, char *headers, char *data, int len)
 {
     return http_req(url, headers,
-                    HTTP_REQ_TYPE_POST | HTTP_REQ_FLAGS_NO_RETRIES |
-                    HTTP_REQ_FLAGS_COMPRESS,
+                    HTTP_REQ_TYPE_POST | HTTP_REQ_FLAGS_NO_RETRIES,
                     data, len);
 }
 // The same as http_post(), but with a short timeout and no retries.
