@@ -25,7 +25,7 @@ UNUM_CONFIG_t unum_config = {
     .config_path               = UNUM_CONFIG_PATH,
     .dns_timeout               = DNS_TIMEOUT,
 #ifdef FEATURE_GZIP
-    .zip_enabled               = COMPRESSION_ENABLED,
+    .gzip_requests             = COMPRESS_THRESHOLD,
 #endif //FEATURE_GZIP
 #if defined(FEATURE_MANAGED_DEVICE)
     .opmode                    = UNUM_OPMS_MD,
@@ -87,12 +87,12 @@ static struct option long_options[] =
     {"tpcap-nice\0ia",     required_argument, NULL, 'N'},
     {"dns-timeout\0ia",    required_argument, NULL, 'D'},
 #ifdef FEATURE_GZIP
-    {"zip-enabled\0ia",    required_argument, NULL, 'g'},
+    {"gzip-requests\0ia",  required_argument, NULL, 'G'},
 #endif //FEATURE_GZIP
     {0, 0, 0, 0}
 };
 // The short options string for the above
-static char *optstring = "hvzf:dunps:i:c:m:o:w:l:L:g:";
+static char *optstring = "hvzf:dunps:i:c:m:o:w:l:L:";
     
 // Global variables for storing command line args
 int arg_count;
@@ -406,7 +406,8 @@ static void print_usage(int argc, char *argv[])
     printf("                                0: disable reporting\n");
     printf(" --dns-timeout <1-...>        - timeout in seconds for dns request\n");
 #ifdef FEATURE_GZIP
-    printf(" --zip-enabled <0 / 1>        - Whether Message Zipping is enabled\n");
+    printf(" --gzip-requests <%d-...>     - turn on message compression\n",
+           COMPRESS_THRESHOLD);
 #endif //FEATURE_GZIP
 #ifdef FW_UPDATER_RUN_MODE
     printf(" --fwupd-period <60-...>      - firmware upgrade check time\n");
@@ -589,8 +590,8 @@ static int do_config_int(char opt_long, int optarg)
             }
             break;
 #ifdef FEATURE_GZIP
-         case 'g':
-             unum_config.zip_enabled = optarg;
+         case 'G':
+             unum_config.gzip_requests = optarg;
              break;
 #endif //FEATURE_GZIP
         default:

@@ -198,6 +198,9 @@ static http_rsp *http_req(char *url, char *headers,
     struct curl_slist *slhdr = NULL;
     struct curl_slist *sldns = NULL;
     char err_buf[CURL_ERROR_SIZE] = "";
+    int compress = 0; // To compress the data?
+    char *dptr = data;
+    int dlen = len;
 
     rsp = alloc_rsp(NULL, RSP_BUF_SIZE);
     if(!rsp) {
@@ -244,6 +247,23 @@ static http_rsp *http_req(char *url, char *headers,
     if((type & HTTP_REQ_FLAGS_CAPTURE_HEADERS) != 0) {
         curl_easy_setopt(ch, CURLOPT_HEADERDATA, &rsp);
     }
+#ifdef FEATURE_GZIP
+    char cstr[COMPRESSED_MSG_MAX_SIZE];
+    int cstrlen;
+
+    // If Zip is enabled and message length exceeds the threshold
+    if(data != NULL && (type & HTTP_REQ_TYPE_MASK) == HTTP_REQ_TYPE_POST &&
+        unum_config.gzip_requests &&
+            len > unum_config.gzip_requests) {
+        // Compress the message
+        cstrlen = util_compress_message(data, len - 1, cstr, sizeof(cstr));
+        if (cstrlen > 0) {
+            compress = 1;
+            dptr = cstr;
+            dlen = cstrlen;
+        }
+    }
+#endif //FEATURE_GZIP
     if(headers)
     {
         struct curl_slist *slold = NULL;
@@ -254,6 +274,11 @@ static http_rsp *http_req(char *url, char *headers,
             if((slhdr = curl_slist_append(slhdr, hdr)) == NULL) {
                 break;
             }
+        }
+        // Add gzip header if message is to be compressed
+        if (compress) {
+            slold = slhdr;
+            slhdr = curl_slist_append(slhdr, "Content-Encoding: gzip\0");
         }
         if(slhdr) {
             curl_easy_setopt(ch, CURLOPT_HTTPHEADER, slhdr);
@@ -295,11 +320,11 @@ static http_rsp *http_req(char *url, char *headers,
     if(((type & HTTP_REQ_TYPE_MASK) == HTTP_REQ_TYPE_POST) ||
        ((type & HTTP_REQ_TYPE_MASK) == HTTP_REQ_TYPE_PUT))
     {
-        log("%s: %08x len: %d, data: '%.*s%s'\n", __func__, ch, len,
-            (len > MAX_LOG_DATA_LEN ? MAX_LOG_DATA_LEN : len), data,
-            (len > MAX_LOG_DATA_LEN ? "..." : ""));
-        curl_easy_setopt(ch, CURLOPT_POSTFIELDS, data);
-        curl_easy_setopt(ch, CURLOPT_POSTFIELDSIZE, len);
+        log("%s: %08x dlen: %d, dptr: '%.*s%s'\n", __func__, ch, dlen,
+            (dlen > MAX_LOG_DATA_LEN ? MAX_LOG_DATA_LEN : dlen), dptr,
+            (dlen > MAX_LOG_DATA_LEN ? "..." : ""));
+        curl_easy_setopt(ch, CURLOPT_POSTFIELDS, dptr);
+        curl_easy_setopt(ch, CURLOPT_POSTFIELDSIZE, dlen);
     }
 
     if((type & HTTP_REQ_FLAGS_NO_RETRIES) != 0) {
@@ -370,43 +395,8 @@ static http_rsp *http_req(char *url, char *headers,
 // The caller must free the http_rsp when it is no longer needed.
 http_rsp *http_post(char *url, char *headers, char *data, int len)
 {
-#ifdef FEATURE_GZIP
-    char cstr[COMPRESSED_MSG_MAX_SIZE];
-    int cstrlen;
-    char headers_c[512];
-    char *hdr;
-    char *hdr_c;
-
-    // If Zip is enabled and message length exceeds the threshold
-    if(unum_config.zip_enabled && len > COMPRESS_THRESHOLD) {
-        // Compress the message
-        cstrlen = zip_compress_message(data, len, cstr, sizeof(cstr));
-        if (cstrlen > 0) {
-            memset(headers_c, 0, sizeof(headers_c));
-            hdr = headers;
-            hdr_c = headers_c;
-            // Need to append gzip encoding to header
-            // First copy all the headers as they are
-            while (*hdr != 0) {
-                strncpy(hdr_c, hdr, sizeof(headers_c) - (hdr - headers));
-                hdr_c += strlen(hdr) + 1;
-                hdr += strlen(hdr) + 1;
-            }
-            strncpy(hdr_c, "Content-Encoding: gzip\0", sizeof(headers_c) -
-                                                     (hdr - headers));
-            // Send compressed message
-            return http_req(url, headers_c,
-                        HTTP_REQ_TYPE_POST, cstr, cstrlen);
-        } else {
-            // The compression did not go through
-            // Send the data as it is
-            return http_req(url, headers, HTTP_REQ_TYPE_POST, data, len);
-        }
-     }
-#endif // FEATURE_GZIP
-     return http_req(url, headers, HTTP_REQ_TYPE_POST, data, len);
+    return http_req(url, headers, HTTP_REQ_TYPE_POST, data, len);
 }
-
 // The same as http_post(), but response headers are captured too
 http_rsp *http_post_all(char *url, char *headers, char *data, int len)
 {

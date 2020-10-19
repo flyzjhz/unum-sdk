@@ -6,6 +6,9 @@ OBJECTS += ./util/util.o ./util/jobs.o ./util/util_event.o ./util/util_net.o
 OBJECTS += ./util/util_json.o ./util/util_timer.o ./util/util_crashinfo.o
 OBJECTS += ./util/$(MODEL)/util_platform.o ./util/util_stubs.o ./util/util_dns.o
 
+#Add zlib files
+OBJECTS += ./util/util_zlib.o
+
 # Add C99 Code Files
 XOBJECTS = ./util/dns.o
 

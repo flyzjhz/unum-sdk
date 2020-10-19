@@ -79,11 +79,6 @@
 #include "monitor.h"
 #include "conncheck.h"
 
-#ifdef FEATURE_GZIP
-// Zlib wrappers
-#include "zip_zlib.h"
-#endif //FEATURE_GZIP
-
 #ifdef DEBUG
 #  include "tests.h"
 #endif // DEBUG
@@ -176,7 +171,8 @@ typedef struct {
     char *config_path;             // path to config file
     int dns_timeout;               // dns timeout value in seconds
 #ifdef FEATURE_GZIP
-    int zip_enabled;               // Whether Message Zip is enabled
+    int gzip_requests;             // threshold beyond which the request is
+                                   // to be compressed
 #endif
     char wan_ifname[IFNAMSIZ];     // specify a custom wan interface name
     char lan_ifname[TPCAP_IF_MAX][IFNAMSIZ];

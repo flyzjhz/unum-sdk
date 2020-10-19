@@ -6,6 +6,11 @@
 
 // Pull in DNS utils header (it's platform independent)
 #include "util_dns.h"
+#ifdef FEATURE_GZIP
+// Zlib wrappers
+#include "util_zlib.h"
+#endif //FEATURE_GZIP
+
 
 
 // Get number of elements in an array
