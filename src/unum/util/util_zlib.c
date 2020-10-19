@@ -8,9 +8,6 @@
 
 #include "unum.h"
 
-#define windowBits 15
-#define GZIP_ENCODING 16
-
 // Compress a message using zlib library
 // msg - Message to be compressed
 // len - Length of the message
@@ -21,6 +18,8 @@ int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len)
 {
     z_stream stream;
     int ret;
+    int GZIP_ENCODING = 16;
+    int WINDOW_BITS = 15;
 
     stream.zalloc = Z_NULL;
     stream.zfree = Z_NULL;
@@ -33,7 +32,7 @@ int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len)
     
     // Init the compression system
     if ((ret = deflateInit2(&stream, DEFAULT_COMP_ALGO,  Z_DEFLATED,
-                             windowBits | GZIP_ENCODING, 8,
+                             WINDOW_BITS | GZIP_ENCODING, 8,
                              Z_DEFAULT_STRATEGY)) != Z_OK) {
         // Init failed
         // Return

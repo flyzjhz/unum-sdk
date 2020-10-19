@@ -184,6 +184,7 @@ static size_t speedtest_chunk(void *contents, size_t size, size_t nmemb, void *u
 #define HTTP_REQ_FLAGS_NO_RETRIES      0x00020000
 #define HTTP_REQ_FLAGS_SHORT_TIMEOUT   0x00040000
 #define HTTP_REQ_FLAGS_GET_CONNTIME    0x00080000
+#define HTTP_REQ_FLAGS_COMPRESS        0x00110000
 static http_rsp *http_req(char *url, char *headers,
                           int type, char *data, int len)
 {
@@ -198,7 +199,13 @@ static http_rsp *http_req(char *url, char *headers,
     struct curl_slist *slhdr = NULL;
     struct curl_slist *sldns = NULL;
     char err_buf[CURL_ERROR_SIZE] = "";
+#ifdef FEATURE_GZIP
     int compress = 0; // To compress the data?
+#endif
+    // dptr points to the data sent to the server
+    // When data is not compressed it points to data
+    // Otherwise it points to the compressed string after the message is
+    // compressed. dlen follows dptr.
     char *dptr = data;
     int dlen = len;
 
@@ -248,19 +255,28 @@ static http_rsp *http_req(char *url, char *headers,
         curl_easy_setopt(ch, CURLOPT_HEADERDATA, &rsp);
     }
 #ifdef FEATURE_GZIP
-    char cstr[COMPRESSED_MSG_MAX_SIZE];
     int cstrlen;
+    char *cstr = NULL;
 
-    // If Zip is enabled and message length exceeds the threshold
-    if(data != NULL && (type & HTTP_REQ_TYPE_MASK) == HTTP_REQ_TYPE_POST &&
-        unum_config.gzip_requests &&
+    // If Zip is enabled and compress flag is set in type
+    // and message length exceeds the threshold,
+    // then compress the message
+    if(data != NULL &&
+            (type & HTTP_REQ_FLAGS_COMPRESS) &&
+            unum_config.gzip_requests &&
             len > unum_config.gzip_requests) {
-        // Compress the message
-        cstrlen = util_compress_message(data, len - 1, cstr, sizeof(cstr));
-        if (cstrlen > 0) {
-            compress = 1;
-            dptr = cstr;
-            dlen = cstrlen;
+        // Allocate memory for compressed message
+        // If the memory allocation fails, let the message
+        // go uncompressed
+        cstr = UTIL_MALLOC(len);
+        if (cstr) {
+            // Compress the message
+            cstrlen = util_compress_message(data, len - 1, cstr, len);
+            if (cstrlen > 0) {
+                compress = 1;
+                dptr = cstr;
+                dlen = cstrlen;
+            }
         }
     }
 #endif //FEATURE_GZIP
@@ -276,10 +292,12 @@ static http_rsp *http_req(char *url, char *headers,
             }
         }
         // Add gzip header if message is to be compressed
+#ifdef FEATURE_GZIP
         if (compress) {
             slold = slhdr;
             slhdr = curl_slist_append(slhdr, "Content-Encoding: gzip\0");
         }
+#endif //FEATURE_GZIP
         if(slhdr) {
             curl_easy_setopt(ch, CURLOPT_HTTPHEADER, slhdr);
         } else {
@@ -372,6 +390,12 @@ static http_rsp *http_req(char *url, char *headers,
     if(sldns != NULL) {
         curl_slist_free_all(sldns);
     }
+#ifdef FEATURE_GZIP
+    // Free the compressed message string
+    if (cstr != NULL) {
+        UTIL_FREE(cstr);
+    }
+#endif
 
     if(err) {
         free_rsp(rsp);
@@ -395,7 +419,8 @@ static http_rsp *http_req(char *url, char *headers,
 // The caller must free the http_rsp when it is no longer needed.
 http_rsp *http_post(char *url, char *headers, char *data, int len)
 {
-    return http_req(url, headers, HTTP_REQ_TYPE_POST, data, len);
+    return http_req(url, headers, HTTP_REQ_TYPE_POST | HTTP_REQ_FLAGS_COMPRESS,
+                    data, len);
 }
 // The same as http_post(), but response headers are captured too
 http_rsp *http_post_all(char *url, char *headers, char *data, int len)
@@ -408,7 +433,8 @@ http_rsp *http_post_all(char *url, char *headers, char *data, int len)
 http_rsp *http_post_no_retry(char *url, char *headers, char *data, int len)
 {
     return http_req(url, headers,
-                    HTTP_REQ_TYPE_POST | HTTP_REQ_FLAGS_NO_RETRIES,
+                    HTTP_REQ_TYPE_POST | HTTP_REQ_FLAGS_NO_RETRIES |
+                    HTTP_REQ_FLAGS_COMPRESS,
                     data, len);
 }
 // The same as http_post(), but with a short timeout and no retries.

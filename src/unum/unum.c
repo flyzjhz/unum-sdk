@@ -406,8 +406,8 @@ static void print_usage(int argc, char *argv[])
     printf("                                0: disable reporting\n");
     printf(" --dns-timeout <1-...>        - timeout in seconds for dns request\n");
 #ifdef FEATURE_GZIP
-    printf(" --gzip-requests <%d-...>     - turn on message compression\n",
-           COMPRESS_THRESHOLD);
+    printf(" --gzip-requests <0-...>      - message compression threshold\n");
+    printf("                                0: turn-off message compression\n");
 #endif //FEATURE_GZIP
 #ifdef FW_UPDATER_RUN_MODE
     printf(" --fwupd-period <60-...>      - firmware upgrade check time\n");
