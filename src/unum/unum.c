@@ -30,9 +30,9 @@ UNUM_CONFIG_t unum_config = {
     .config_path               = UNUM_CONFIG_PATH,
     .logs_dir                  = UNUM_LOG_PATH,
     .dns_timeout               = DNS_TIMEOUT,
-#ifdef FEATURE_GZIP
+#ifdef FEATURE_GZIP_REQUESTS
     .gzip_requests             = COMPRESS_THRESHOLD,
-#endif //FEATURE_GZIP
+#endif //FEATURE_GZIP_REQUESTS
 #if defined(FEATURE_MANAGED_DEVICE)
     .opmode                    = UNUM_OPMS_MD,
     .opmode_flags              = UNUM_OPM_MD,
@@ -92,9 +92,9 @@ static struct option long_options[] =
     {"sysinfo-period\0ia", required_argument, NULL, 'C'},
     {"tpcap-nice\0ia",     required_argument, NULL, 'N'},
     {"dns-timeout\0ia",    required_argument, NULL, 'D'},
-#ifdef FEATURE_GZIP
+#ifdef FEATURE_GZIP_REQUESTS
     {"gzip-requests\0ia",  required_argument, NULL, 'G'},
-#endif //FEATURE_GZIP
+#endif //FEATURE_GZIP_REQUESTS
     {"log-dir\0co",        required_argument, NULL, 'L'},
     {0, 0, 0, 0}
 };
@@ -412,10 +412,10 @@ static void print_usage(int argc, char *argv[])
     printf(" --sysinfo-period <0-...>     - sysinfo reporting interval\n");
     printf("                                0: disable reporting\n");
     printf(" --dns-timeout <1-...>        - timeout in seconds for dns request\n");
-#ifdef FEATURE_GZIP
+#ifdef FEATURE_GZIP_REQUESTS
     printf(" --gzip-requests <0-...>      - message compression threshold\n");
-    printf("                                0: turn-off message compression\n");
-#endif //FEATURE_GZIP
+    printf("                                0: no compression (default)\n");
+#endif //FEATURE_GZIP_REQUESTS
 #ifdef FW_UPDATER_RUN_MODE
     printf(" --fwupd-period <60-...>      - firmware upgrade check time\n");
     printf("                                for \"-m updater\"\n");
@@ -602,11 +602,11 @@ static int do_config_int(char opt_long, int optarg)
                 unum_config.dns_timeout = optarg;
             }
             break;
-#ifdef FEATURE_GZIP
+#ifdef FEATURE_GZIP_REQUESTS
          case 'G':
              unum_config.gzip_requests = optarg;
              break;
-#endif //FEATURE_GZIP
+#endif //FEATURE_GZIP_REQUESTS
         default:
             status = -13;
             break;

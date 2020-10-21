@@ -3,7 +3,7 @@
 
 #ifndef _UTIL_ZLIB_H
 #define _UTIL_ZLIB_H
-#ifdef FEATURE_GZIP // Only if this is feature is enabled
+#ifdef FEATURE_GZIP_REQUESTS // Only if this is feature is enabled
 
 #include <zlib.h>
 
@@ -11,7 +11,6 @@
 // Threshold beyond which the message is to be compressed
 // Default value is 0
 // Can be overwritten by platform specific defines
-// It means by default we don't compress the messages
 #define COMPRESS_THRESHOLD 0
 
 // Default compression algorithm
@@ -22,5 +21,5 @@
 // Compress a message
 int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len);
 
-#endif // FEATURE_GZIP
+#endif // FEATURE_GZIP_REQUESTS
 #endif // _UTIL_ZLIB_H

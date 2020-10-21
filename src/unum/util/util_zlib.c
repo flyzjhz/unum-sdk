@@ -1,6 +1,6 @@
 // (c) 2020 minim.co
 
-#ifdef FEATURE_GZIP // Only if this is feature is enabled
+#ifdef FEATURE_GZIP_REQUESTS // Only if this is feature is enabled
 // Wrapper routines from zlib
 // Zlib is thread safe
 // Can safely be called in parallel
@@ -59,4 +59,4 @@ int util_compress_message(char *msg, int len, char *cmsg, int cmsg_len)
     return cmsg_len - stream.avail_out;
 }
 
-#endif // FEATURE_GZIP
+#endif // FEATURE_GZIP_REQUESTS

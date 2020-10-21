@@ -199,9 +199,9 @@ static http_rsp *http_req(char *url, char *headers,
     struct curl_slist *slhdr = NULL;
     struct curl_slist *sldns = NULL;
     char err_buf[CURL_ERROR_SIZE] = "";
-#ifdef FEATURE_GZIP
+#ifdef FEATURE_GZIP_REQUESTS
     int compress = 0; // To compress the data?
-#endif
+#endif // FEATURE_GZIP_REQUESTS
     // dptr points to the data sent to the server
     // When data is not compressed it points to data
     // Otherwise it points to the compressed string after the message is
@@ -254,7 +254,7 @@ static http_rsp *http_req(char *url, char *headers,
     if((type & HTTP_REQ_FLAGS_CAPTURE_HEADERS) != 0) {
         curl_easy_setopt(ch, CURLOPT_HEADERDATA, &rsp);
     }
-#ifdef FEATURE_GZIP
+#ifdef FEATURE_GZIP_REQUESTS
     int cstrlen;
     char *cstr = NULL;
 
@@ -264,7 +264,8 @@ static http_rsp *http_req(char *url, char *headers,
     if(data != NULL &&
             (type & HTTP_REQ_FLAGS_COMPRESS) &&
             unum_config.gzip_requests &&
-            len > unum_config.gzip_requests) {
+            len > unum_config.gzip_requests)
+    {
         // Allocate memory for compressed message
         // If the memory allocation fails, let the message
         // go uncompressed
@@ -279,7 +280,7 @@ static http_rsp *http_req(char *url, char *headers,
             }
         }
     }
-#endif //FEATURE_GZIP
+#endif //FEATURE_GZIP_REQUESTS
     if(headers)
     {
         struct curl_slist *slold = NULL;
@@ -291,21 +292,21 @@ static http_rsp *http_req(char *url, char *headers,
                 break;
             }
         }
-        // Add gzip header if message is to be compressed
-#ifdef FEATURE_GZIP
-        if (compress) {
-            slold = slhdr;
-            slhdr = curl_slist_append(slhdr, "Content-Encoding: gzip\0");
-        }
-#endif //FEATURE_GZIP
-        if(slhdr) {
-            curl_easy_setopt(ch, CURLOPT_HTTPHEADER, slhdr);
-        } else {
+        if(slhdr == NULL) {
             log("%s: %08x failed to add headers, ignoring\n", __func__, ch);
             if(slold) {
                 curl_slist_free_all(slold);
             }
         }
+    }
+    // Add gzip header if message is to be compressed
+#ifdef FEATURE_GZIP_REQUESTS
+    if (compress) {
+        slhdr = curl_slist_append(slhdr, "Content-Encoding: gzip\0");
+    }
+#endif //FEATURE_GZIP_REQUESTS
+    if(slhdr) {
+        curl_easy_setopt(ch, CURLOPT_HTTPHEADER, slhdr);
     }
     if(conncheck_no_dns())
     {
@@ -338,9 +339,15 @@ static http_rsp *http_req(char *url, char *headers,
     if(((type & HTTP_REQ_TYPE_MASK) == HTTP_REQ_TYPE_POST) ||
        ((type & HTTP_REQ_TYPE_MASK) == HTTP_REQ_TYPE_PUT))
     {
-        log("%s: %08x dlen: %d, dptr: '%.*s%s'\n", __func__, ch, dlen,
-            (dlen > MAX_LOG_DATA_LEN ? MAX_LOG_DATA_LEN : dlen), dptr,
-            (dlen > MAX_LOG_DATA_LEN ? "..." : ""));
+        log("%s: %08x len: %d, compressed = %d, ptr: '%.*s%s'\n",
+            __func__, ch, len,
+#ifdef FEATURE_GZIP_REQUESTS
+            compress,
+#else // FEATURE_GZIP_REQUESTS
+            0,
+#endif // FEATURE_GZIP_REQUESTS
+            (len > MAX_LOG_DATA_LEN ? MAX_LOG_DATA_LEN : len), data,
+            (len > MAX_LOG_DATA_LEN ? "..." : ""));
         curl_easy_setopt(ch, CURLOPT_POSTFIELDS, dptr);
         curl_easy_setopt(ch, CURLOPT_POSTFIELDSIZE, dlen);
     }
@@ -390,12 +397,12 @@ static http_rsp *http_req(char *url, char *headers,
     if(sldns != NULL) {
         curl_slist_free_all(sldns);
     }
-#ifdef FEATURE_GZIP
+#ifdef FEATURE_GZIP_REQUESTS
     // Free the compressed message string
     if (cstr != NULL) {
         UTIL_FREE(cstr);
     }
-#endif
+#endif //FEATURE_GZIP_REQUESTS
 
     if(err) {
         free_rsp(rsp);
